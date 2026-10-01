@@ -8,16 +8,38 @@ from utils.logger import log_info, log_action, log_success, log_error, log_warni
 from utils.failsafe import start_failsafe
 from voice.tts import tts
 from voice.listener import VoiceListener
+from voice.meeting_listener import meeting_listener
 from core.router import classify_intent
 from core.agent import agent
 from core.conversation import chat_manager
+from core.zoom import zoom
 
 console = Console()
 
 def handle_user_command(command: str):
-    """Routes command to either desktop agent or conversational chat."""
+    """Routes command to Zoom, desktop agent, or conversational chat."""
     if not command or not command.strip():
         return
+
+    lower = command.lower()
+
+    # Direct Zoom handler
+    if "зум" in lower or "zoom" in lower:
+        if any(w in lower for w in ("выйди", "покинь", "leave", "закрой")):
+            meeting_listener.stop()
+            zoom.leave_meeting()
+            return
+        elif any(w in lower for w in ("зайди", "подключись", "войди", "join", "открой")):
+            success = zoom.join_meeting(command)
+            if success:
+                meeting_listener.start()
+            return
+        elif any(w in lower for w in ("выключи микрофон", "заглуши", "mute")):
+            zoom.mute()
+            return
+        elif any(w in lower for w in ("включи микрофон", "разглуши", "unmute")):
+            zoom.unmute()
+            return
 
     intent = classify_intent(command)
 
@@ -35,11 +57,12 @@ def voice_listener_worker(listener: VoiceListener):
 
 def main():
     w, h = config.get_screen_resolution()
-    banner = f"""[bold cyan]J.A.R.V.I.S. Desktop & Voice Agent[/bold cyan]
+    banner = f"""[bold cyan]J.A.R.V.I.S. Desktop & Voice Agent (с поддержкой Zoom)[/bold cyan]
 [dim]------------------------------------------------[/dim]
 [green]Экран:[/green] {w}x{h} (DPI-aware)
 [green]Модель разума:[/green] {config.MODEL_NAME}
 [green]Модель синтеза речи:[/green] {config.TTS_MODEL} ({config.TTS_VOICE})
+[green]Модуль Zoom:[/green] Установлен (подключение, авто-звук, перехват реплик участников)
 [green]Ключевые слова активации:[/green] {", ".join(config.WAKE_WORDS)}
 [yellow]Аварийный стоп:[/yellow] [bold red]Ctrl + Alt + Q[/bold red]
 [dim]------------------------------------------------[/dim]"""
@@ -60,10 +83,17 @@ def main():
     console.print("  [1] Текстовый CLI (ввод команд с клавиатуры)")
     console.print("  [2] Полноценный Голосовой режим (микрофон + 'Привет, Джарвис')")
     console.print("  [3] Комбинированный режим (фоновый микрофон + консоль)")
+    console.print("  [4] Быстрый вход в Zoom (вставить ссылку/ID конференции)")
 
-    choice = input("\nВведите 1, 2 или 3 (по умолчанию 3): ").strip()
+    choice = input("\nВведите 1, 2, 3 или 4 (по умолчанию 3): ").strip()
     if not choice:
         choice = "3"
+
+    if choice == "4":
+        meeting_link = input("\nВведите ссылку или ID конференции Zoom: ").strip()
+        if meeting_link:
+            handle_user_command(f"зайди в зум {meeting_link}")
+        choice = "3" # Continue in combined mode
 
     if choice in ("2", "3"):
         voice_thread = threading.Thread(target=voice_listener_worker, args=(listener,), daemon=True)
@@ -84,6 +114,7 @@ def main():
         pass
     finally:
         listener.stop()
+        meeting_listener.stop()
         log_info("Завершение работы Джарвиса. До свидания, сэр.")
 
 if __name__ == "__main__":
