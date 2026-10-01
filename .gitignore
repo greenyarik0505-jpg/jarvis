@@ -1,0 +1,22 @@
+# Environment variables and secrets
+.env
+*.env
+
+# Python cache & virtual environment
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Audio and screen temporary files
+*.mp3
+*.wav
+temp/
+screenshots/
+debug/
+
+# IDE files
+.vscode/
+.idea/
