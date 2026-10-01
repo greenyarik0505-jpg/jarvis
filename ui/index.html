@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. Desktop System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="hud-container">
+        <!-- Top Status Bar -->
+        <header class="hud-header">
+            <div class="logo-box">
+                <span class="logo-icon">▲</span>
+                <span class="logo-text">J.A.R.V.I.S.</span>
+                <span class="version-tag">MARK VII</span>
+            </div>
+            <div class="telemetry">
+                <div class="tele-item"><span class="lbl">BRAIN:</span> <span class="val" id="model-name">Qwen 3.8</span></div>
+                <div class="tele-item"><span class="lbl">VOICE:</span> <span class="val" id="tts-voice">Deepgram Flux</span></div>
+                <div class="tele-item"><span class="lbl">ZOOM:</span> <span class="val status-idle" id="zoom-status">DISCONNECTED</span></div>
+                <div class="tele-item"><span class="lbl">FAILSAFE:</span> <span class="val alert-hotkey">CTRL+ALT+Q</span></div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <div class="hud-body">
+            <!-- Left Side: Arc Reactor & Audio Visualizer -->
+            <div class="reactor-panel">
+                <div class="reactor-wrapper">
+                    <div class="reactor-ring outer-ring"></div>
+                    <div class="reactor-ring mid-ring"></div>
+                    <div class="reactor-ring inner-ring"></div>
+                    <div class="reactor-core" id="reactor-core">
+                        <div class="core-glow"></div>
+                        <div class="core-text" id="system-state">ONLINE</div>
+                    </div>
+                </div>
+
+                <!-- Waveform visualizer -->
+                <div class="wave-container">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="quick-controls">
+                    <button class="hud-btn active" id="btn-voice-toggle" onclick="toggleVoice()">
+                        <span class="btn-icon">🎙️</span>
+                        <span class="btn-text">ГОЛОС: ВКЛ</span>
+                    </button>
+                    <button class="hud-btn" id="btn-zoom-mute" onclick="toggleZoomMute()">
+                        <span class="btn-icon">🔇</span>
+                        <span class="btn-text">ЗВУК ZOOM (ALT+A)</span>
+                    </button>
+                    <button class="hud-btn danger" onclick="emergencyStop()">
+                        <span class="btn-icon">🛑</span>
+                        <span class="btn-text">СТОП АГЕНТА</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Live Holographic Feed & Zoom Launcher -->
+            <div class="feed-panel">
+                <!-- Zoom Quick Connect Bar -->
+                <div class="zoom-bar">
+                    <input type="text" id="zoom-input" placeholder="Вставьте ссылку Zoom (https://us05web.zoom.us/j/...)" />
+                    <button class="hud-btn primary" onclick="joinZoom()">ВОЙТИ В ZOOM</button>
+                    <button class="hud-btn warning" id="btn-leave-zoom" style="display:none;" onclick="leaveZoom()">ВЫЙТИ</button>
+                </div>
+
+                <!-- Terminal / Messages Log -->
+                <div class="terminal-box" id="terminal-feed">
+                    <div class="feed-msg system">
+                        <span class="time">[INIT]</span>
+                        <span class="msg">Все протоколы активны. Аудио-линия HitPaw для Zoom и Realtek для наушников подключены.</span>
+                    </div>
+                    <div class="feed-msg jarvis">
+                        <span class="speaker">JARVIS:</span>
+                        <span class="msg">Слушаю вас, сэр. Я готов к работе. Скажите "Привет, Джарвис" или введите команду.</span>
+                    </div>
+                </div>
+
+                <!-- Bottom Input Field -->
+                <div class="input-bar">
+                    <input type="text" id="cmd-input" placeholder="Введите команду или вопрос (Enter для отправки)..." onkeydown="handleInputKey(event)" />
+                    <button class="hud-btn primary" onclick="submitCommand()">ОТПРАВИТЬ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
