@@ -13,6 +13,19 @@ class VoiceListener:
         self.wake_words = config.WAKE_WORDS
         self.is_listening = False
         self._stop_event = threading.Event()
+        self.mic_device_idx = self._find_user_mic()
+
+    def _find_user_mic(self):
+        try:
+            for idx, dev in enumerate(sd.query_devices()):
+                if dev['max_input_channels'] > 0:
+                    name = dev['name']
+                    if config.USER_MICROPHONE and config.USER_MICROPHONE.lower() in name.lower():
+                        log_info(f"Микрофон пользователя найден: [{idx}] {name}")
+                        return idx
+        except Exception:
+            pass
+        return None
 
     def record_phrase(self, max_duration: float = 12.0, silence_timeout: float = 1.0) -> np.ndarray:
         """
@@ -25,7 +38,7 @@ class VoiceListener:
         speech_started = False
         start_time = time.time()
 
-        with sd.InputStream(samplerate=self.sample_rate, channels=1, dtype='float32', blocksize=chunk_size) as stream:
+        with sd.InputStream(device=self.mic_device_idx, samplerate=self.sample_rate, channels=1, dtype='float32', blocksize=chunk_size) as stream:
             while not self._stop_event.is_set():
                 chunk, overflowed = stream.read(chunk_size)
                 energy = np.sqrt(np.mean(chunk**2))

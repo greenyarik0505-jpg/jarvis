@@ -28,6 +28,12 @@ TTS_MODEL = os.getenv("TTS_MODEL", "deepgram/flux-tts:free")
 TTS_VOICE = os.getenv("TTS_VOICE", "flux-bruce-en")
 WAKE_WORDS = [w.strip().lower() for w in os.getenv("WAKE_WORDS", "джарвис,jarvis,привет джарвис").split(",") if w.strip()]
 
+# Audio Device Routing (HitPaw Virtual Line for Zoom + Realtek for User)
+ZOOM_VIRTUAL_LINE = os.getenv("ZOOM_VIRTUAL_LINE", "HitPaw")
+USER_HEADPHONES = os.getenv("USER_HEADPHONES", "Realtek")
+USER_MICROPHONE = os.getenv("USER_MICROPHONE", "Realtek")
+DUAL_TTS_OUTPUT = os.getenv("DUAL_TTS_OUTPUT", "true").lower() == "true"
+
 # Agent & Vision parameters
 SCREEN_SCALE = float(os.getenv("SCREEN_SCALE", "1.0"))
 JPEG_QUALITY = int(os.getenv("JPEG_QUALITY", "80"))

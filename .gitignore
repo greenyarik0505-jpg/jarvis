@@ -20,3 +20,6 @@ debug/
 # IDE files
 .vscode/
 .idea/
+
+# Binaries
+*.exe

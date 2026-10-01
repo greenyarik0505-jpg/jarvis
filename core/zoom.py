@@ -17,24 +17,45 @@ class ZoomController:
     def parse_meeting_info(self, raw_input: str) -> tuple[str, str]:
         """
         Extracts (confno, pwd) from URL or plain text like:
-        - 'https://zoom.us/j/1234567890?pwd=abc'
-        - '1234567890 abc'
+        - 'https://us05web.zoom.us/j/5397107998?pwd=SGFwSG1CcURPbVlUd09kZjcySU15UT09'
+        - 'зайди в зум https://zoom.us/j/1234567890?pwd=abc'
+        - '5397107998 код SGFwSG1...'
         """
         raw = raw_input.strip()
 
-        # Check for URL
-        url_match = re.search(r"/j/(\d+)(?:\?.*pwd=([a-zA-Z0-9_\-\.]+))?", raw)
+        # 1. Search for any Zoom URL
+        url_match = re.search(r"https?://[^\s<>\"\'\)]+", raw)
         if url_match:
-            confno = url_match.group(1)
-            pwd = url_match.group(2) or ""
+            url_str = url_match.group(0)
+            try:
+                parsed = urllib.parse.urlparse(url_str)
+                # Matches /j/5397107998 or /wc/join/5397107998
+                path_match = re.search(r"/(?:j|join|wc/join)/(\d+)", parsed.path)
+                if path_match:
+                    confno = path_match.group(1)
+                    qs = urllib.parse.parse_qs(parsed.query)
+                    pwd = qs.get("pwd", [""])[0]
+                    return confno, pwd
+            except Exception:
+                pass
+
+        # 2. Check for explicit 9-11 digit conference ID
+        numbers = re.findall(r"\d{9,11}", raw)
+        if numbers:
+            confno = numbers[0]
+            pwd_match = re.search(r"(?:пароль|pwd|passcode|код)[:\s=]+([a-zA-Z0-9_\-=\.]+)", raw, re.IGNORECASE)
+            pwd = pwd_match.group(1) if pwd_match else ""
             return confno, pwd
 
-        # Check for numbers
-        numbers = re.findall(r"\d+", raw)
-        if numbers:
-            confno = "".join(numbers[:3]) if len(numbers) >= 3 and len("".join(numbers[:3])) in (9, 10, 11) else numbers[0]
-            # Check if there is password word
-            pwd_match = re.search(r"(?:пароль|pwd|passcode|код)[:\s]+([a-zA-Z0-9_\-]+)", raw, re.IGNORECASE)
+        # 3. Check for any sequence of numbers
+        all_numbers = re.findall(r"\d+", raw)
+        if all_numbers:
+            combined = "".join(all_numbers[:3])
+            if len(combined) in (9, 10, 11):
+                confno = combined
+            else:
+                confno = all_numbers[0]
+            pwd_match = re.search(r"(?:пароль|pwd|passcode|код)[:\s=]+([a-zA-Z0-9_\-=\.]+)", raw, re.IGNORECASE)
             pwd = pwd_match.group(1) if pwd_match else ""
             return confno, pwd
 
